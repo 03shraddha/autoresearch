@@ -7,16 +7,22 @@ personal portfolio website (shraddha-kulkarni.com) by editing its source files.
 ---
 
 ## Metric
-**Lighthouse Performance Score — 0 to 100, higher is better.**
+**load_score — lower is better (like val_bpb in LLM training).**
+
+```
+load_score = total_asset_kb
+           + 50 × blocking_scripts      (render-blocking <script> in <head> without defer/async)
+           + 10 × missing_preconnects   (CDN origins with no preconnect hint)
+           +  5 × cls_risk_images       (images missing explicit width + height)
+```
 
 Sub-metrics (in priority order):
-| Metric | Weight | Target |
-|--------|--------|--------|
-| Total Blocking Time (TBT) | highest | < 200 ms |
-| First Contentful Paint (FCP) | high | < 1.8 s |
-| Largest Contentful Paint (LCP) | high | < 2.5 s |
-| Speed Index | medium | < 3.4 s |
-| Cumulative Layout Shift (CLS) | medium | < 0.1 |
+| Sub-metric | Penalty | Target |
+|---|---|---|
+| blocking_scripts | 50 pts each | 0 |
+| missing_preconnects | 10 pts each | 0 |
+| cls_risk_images | 5 pts each | 0 |
+| total_kb (html+css+js) | 1 pt per KB | minimise |
 
 ---
 
