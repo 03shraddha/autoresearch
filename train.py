@@ -38,7 +38,7 @@ WEBSITE_DIR     = Path(os.environ.get("WEBSITE_DIR", "/content/personal-website"
 MIN_GAIN        = 5.0        # minimum load_score drop to keep a change
 MAX_EXPERIMENTS = 100        # stop after this many experiments
 PUSH_CHANGES    = True       # git-push improvements to GitHub (needs GITHUB_TOKEN)
-MODEL           = "claude-opus-4-7"
+MODEL           = "claude-sonnet-4-6"
 LOG_FILE        = Path(__file__).parent / "optimization_log.json"
 
 # Only these files may be modified by the agent
@@ -166,7 +166,18 @@ def git_push(exp: int, score_before: float, score_after: float):
 def call_agent(best_score: float, history: list, files: dict[str, str]) -> str:
     program    = (Path(__file__).parent / "program.md").read_text()
     recent     = json.dumps(history[-6:], indent=2) if history else "none yet"
-    files_block = "\n\n".join(f"=== {n} ===\n{b}" for n, b in files.items())
+
+    # Always send index.html; only include styles.css / script.js if they were
+    # touched in the last 6 experiments (avoids sending 265 KB of CSS+JS every call)
+    recently_changed = {f for e in history[-6:] for f in e.get("files_changed", [])}
+    send_files = {
+        name: body for name, body in files.items()
+        if name == "index.html" or name in recently_changed or not history
+    }
+    omitted = [n for n in files if n not in send_files]
+    files_block = "\n\n".join(f"=== {n} ===\n{b}" for n, b in send_files.items())
+    if omitted:
+        files_block += f"\n\n(unchanged since last experiment, not resent: {', '.join(omitted)})"
 
     prompt = f"""{program}
 

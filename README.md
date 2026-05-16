@@ -10,7 +10,7 @@ The original loop minimises `val_bpb` (language model perplexity) by having Clau
 
 Every iteration:
 1. Measure `load_score` from static file analysis (no browser needed)
-2. Ask Claude to make one targeted optimisation
+2. Ask Claude (`claude-sonnet-4-6`) to make one targeted optimisation. Only sends `index.html` by default, and only includes `styles.css` / `script.js` if they were recently touched, so API costs stay low.
 3. If `load_score` drops by more than 5 points, keep it and push to GitHub
 4. Otherwise revert and try something else
 5. Repeat up to 100 times
