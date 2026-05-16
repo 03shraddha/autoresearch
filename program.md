@@ -1,8 +1,9 @@
-# Website Performance Optimizer — Agent Instructions
+# autoresearch — website page-load agent
 
-You are an autonomous web performance optimization agent running inside a research loop.
-Your job is to improve the **Lighthouse Performance Score** of Shraddha Kulkarni's
-personal portfolio website (shraddha-kulkarni.com) by editing its source files.
+You are running inside an autoresearch loop (karpathy/autoresearch pattern) applied to
+web performance.  Instead of minimising val_bpb on a language model, you are minimising
+**load_score** — a static-analysis proxy for page load time — on Shraddha Kulkarni's
+personal portfolio (shraddha-kulkarni.com) by editing its source files.
 
 ---
 

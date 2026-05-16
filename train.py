@@ -1,17 +1,25 @@
 """
-Website Performance Optimizer — main loop.
-Analogous to karpathy/autoresearch train.py, but instead of minimising val_bpb
-on a language model, this minimises a load_score on a static website by having
-Claude autonomously edit HTML / CSS / JS.
+autoresearch — website page-load edition.
 
-Metric  : load_score  (lower is better, like val_bpb)
-          = total asset size in KB
-          + 50 × render-blocking scripts in <head> without defer/async
-          + 10 × external origins missing a preconnect hint
-          +  5 × images missing width/height (CLS risk)
+karpathy/autoresearch runs a tight loop:
+  measure val_bpb  →  agent edits model code  →  keep if better, revert if not  →  repeat
 
-Edits   : index.html, styles.css, script.js  in WEBSITE_DIR
-Keeps   : a change only if it reduces load_score by > MIN_GAIN
+This file runs the same loop, but the target is page load time instead of language
+model perplexity.  The metric is load_score (lower is better, directly analogous to
+val_bpb): a static-analysis proxy for real-world load performance, computable from
+raw HTML/CSS/JS without a browser.
+
+  load_score = total_asset_kb                          (transfer cost)
+             + 50 × render-blocking scripts in <head>  (blocks first paint)
+             + 10 × CDN origins missing a preconnect   (extra DNS + TLS round-trips)
+             +  5 × images missing width/height         (causes layout shift / CLS)
+
+Each iteration, Claude proposes one targeted edit.  If load_score drops by ≥ MIN_GAIN
+the change is kept and git-pushed; otherwise the files are restored and the loop
+continues.  100 experiments cap the run.
+
+Edits   : index.html, styles.css, script.js  (in WEBSITE_DIR)
+Keeps   : change only if load_score drops by > MIN_GAIN
 Reverts : everything else
 Logs    : optimization_log.json
 
