@@ -64,19 +64,36 @@ def start_server():
 # ──────────────────────────────────────────────
 # MEASUREMENT
 # ──────────────────────────────────────────────
+def find_chrome() -> str | None:
+    for path in [
+        "/usr/bin/chromium-browser",
+        "/usr/bin/chromium",
+        "/usr/bin/google-chrome",
+        "/usr/bin/google-chrome-stable",
+    ]:
+        if os.path.exists(path):
+            return path
+    return None
+
 def run_lighthouse() -> tuple[float, dict]:
     """Run Lighthouse once. Returns (score_0_to_100, audit_metrics)."""
-    result = subprocess.run(
-        [
-            "lighthouse",
-            f"http://localhost:{PORT}/index.html",
-            "--output=json",
-            "--quiet",
-            "--only-categories=performance",
-            "--chrome-flags=--headless --no-sandbox --disable-gpu --disable-dev-shm-usage",
-        ],
-        capture_output=True, text=True, timeout=120,
-    )
+    cmd = [
+        "lighthouse",
+        f"http://localhost:{PORT}/index.html",
+        "--output=json",
+        "--quiet",
+        "--only-categories=performance",
+        "--chrome-flags=--headless --no-sandbox --disable-gpu --disable-dev-shm-usage",
+    ]
+    chrome = find_chrome()
+    if chrome:
+        cmd.append(f"--chrome-path={chrome}")
+
+    result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+
+    if not result.stdout.strip():
+        raise RuntimeError(f"Lighthouse produced no output.\nstderr: {result.stderr[:300]}")
+
     data    = json.loads(result.stdout)
     score   = data["categories"]["performance"]["score"] * 100
     metrics = {k: data["audits"][k]["numericValue"] for k in LH_AUDITS}
