@@ -70,15 +70,25 @@ def measure() -> tuple[float, dict]:
         if "defer" not in s.lower() and "async" not in s.lower()
     )
 
-    # External origins referenced in <head>
-    cdn_origins  = set(re.findall(r"https://[^/\"'\s>]+\.[a-z]{2,}", head))
-    preconnected = set(re.findall(
-        r'rel=["\']preconnect["\'][^>]*href=["\']([^"\']+)["\']|href=["\']([^"\']+)["\'][^>]*rel=["\']preconnect["\']',
-        head, re.IGNORECASE
-    ))
-    # flatten tuple groups from alternation
-    preconnected_flat = {u for pair in preconnected for u in pair if u}
-    missing_preconnects = max(0, len(cdn_origins) - len(preconnected_flat))
+    # External origins referenced in <head> — extract scheme+host only
+    def origin(url: str) -> str:
+        m = re.match(r"https?://[^/\"'\s>]+", url)
+        return m.group(0) if m else ""
+
+    all_refs    = re.findall(r'''(?:href|src)=["']([^"'\s>]+)["']''', head, re.IGNORECASE)
+    cdn_origins = {origin(r) for r in all_refs if r.startswith("http")} - {""}
+
+    # Preconnected origins: iterate every <link> tag and check for rel=preconnect
+    preconnected_origins = set()
+    for link_tag in re.findall(r"<link[^>]+>", head, re.IGNORECASE):
+        if "preconnect" in link_tag.lower():
+            href = re.search(r'''href=["']([^"'\s>]+)["']''', link_tag, re.IGNORECASE)
+            if href:
+                o = origin(href.group(1))
+                if o:
+                    preconnected_origins.add(o)
+
+    missing_preconnects = max(0, len(cdn_origins - preconnected_origins))
 
     # Images missing explicit width or height (causes CLS)
     all_imgs = re.findall(r"<img[^>]+>", html_text, re.IGNORECASE)
@@ -224,6 +234,8 @@ def main():
         new_score, new_metrics = measure()
         delta    = best_score - new_score   # positive = improvement
         improved = delta >= MIN_GAIN
+
+        print(f"  Metrics: kb={new_metrics['total_kb']} | blocking={new_metrics['blocking_scripts']} | preconnect_missing={new_metrics['missing_preconnects']} | cls={new_metrics['cls_risk_images']}")
 
         entry = {
             "experiment":    exp,
