@@ -27,6 +27,7 @@ PORT           = 8787
 LH_RUNS        = 3          # Lighthouse passes averaged per measurement
 MIN_GAIN       = 0.5        # minimum score improvement to keep a change
 PUSH_CHANGES   = True       # git-push improvements to GitHub (needs GITHUB_TOKEN)
+MAX_EXPERIMENTS = 100       # stop after this many experiments
 MODEL          = "claude-opus-4-7"
 LOG_FILE       = Path(__file__).parent / "optimization_log.json"
 
@@ -208,9 +209,9 @@ def main():
     best_score = baseline_score
     exp        = 0
 
-    print("\nStarting optimisation loop …  (Ctrl-C to stop)\n")
+    print(f"\nStarting optimisation loop …  (max {MAX_EXPERIMENTS} experiments)\n")
 
-    while True:
+    while exp < MAX_EXPERIMENTS:
         exp += 1
         print(f"── Experiment {exp:03d}  │  best so far: {best_score:.1f} ──")
 
@@ -266,6 +267,9 @@ def main():
         log["experiments"].append(entry)
         LOG_FILE.write_text(json.dumps(log, indent=2))
         print()
+
+    print(f"Done! Ran {MAX_EXPERIMENTS} experiments. Best score: {best_score:.1f} / 100")
+    print(f"Full log saved to {LOG_FILE}")
 
 
 if __name__ == "__main__":
