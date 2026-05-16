@@ -1,6 +1,6 @@
 # autoresearch - website edition
 
-This is karpathy's [autoresearch](https://github.com/karpathy/autoresearch) loop applied to web performance instead of LLM training.
+This is karpathy's [autoresearch](https://github.com/karpathy/autoresearch) loop applied to my personal website. In each experiment, Claude makes one targeted change to the HTML or CSS, measures whether the page loads faster using a score, and keeps the change only if the score actually improves. If it does not help, it reverts the change and tries something else.
 
 <img width="2778" height="1484" alt="image" src="https://github.com/user-attachments/assets/9b8ab28c-f9a9-4816-95ea-de121e8b45c8" />
 
