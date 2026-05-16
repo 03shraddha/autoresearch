@@ -2,6 +2,8 @@
 
 This is karpathy's [autoresearch](https://github.com/karpathy/autoresearch) loop applied to web performance instead of LLM training.
 
+<img width="2778" height="1484" alt="image" src="https://github.com/user-attachments/assets/9b8ab28c-f9a9-4816-95ea-de121e8b45c8" />
+
 The original loop minimises `val_bpb` (language model perplexity) by having Claude rewrite model code, one experiment at a time. This version minimises `load_score` (a proxy for page load time) by having Claude rewrite HTML, CSS, and JS.
 
 ## How it works
