@@ -1,0 +1,9 @@
+[project]
+name = "autoresearch-website"
+version = "0.1.0"
+description = "Autonomous website performance optimization — Lighthouse score equivalent of autoresearch val_bpb"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=0.40.0",
+]
